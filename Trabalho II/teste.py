@@ -145,9 +145,25 @@ class Visualizador:
         self.root.bind("<Left>", lambda event: self.mover_window(-1, 0))
         self.root.bind("<Right>", lambda event: self.mover_window(1, 0))
 
+        self.root.bind("<Control-z>", lambda event: self.zoom_window(1.1)) # fator de scala + 10%
+        self.root.bind("<Control-x>", lambda event: self.zoom_window(0.9)) # fator de scala - 10%
+
     def mover_window(self, deslocamento_x: float, deslocamento_y: float):
         transalacao(self.window.min, deslocamento_x, deslocamento_y)
         transalacao(self.window.max, deslocamento_x, deslocamento_y)
+        self.desenhar_viewport()
+        self.desenhar_minimapa()
+
+    def zoom_window(self, fator_escala: float):
+        ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
+        transalacao(self.window.min, -ponto_medio_window.x, -ponto_medio_window.y)
+        transalacao(self.window.max, -ponto_medio_window.x, -ponto_medio_window.y)
+
+        escala(self.window.min, fator_escala)
+        escala(self.window.max, fator_escala)
+
+        transalacao(self.window.min, +ponto_medio_window.x, +ponto_medio_window.y)
+        transalacao(self.window.max, +ponto_medio_window.x, +ponto_medio_window.y)
 
         self.desenhar_viewport()
         self.desenhar_minimapa()
@@ -232,6 +248,20 @@ class Visualizador:
 def transalacao(ponto: Ponto, deslocamento_x: float, deslocamento_y: float):
     ponto.x += deslocamento_x
     ponto.y += deslocamento_y
+
+def escala(ponto: Ponto, fator_escala: float):
+    ponto.x *= fator_escala
+    ponto.y *= fator_escala
+
+def get_ponto_medio(pontos: list[Ponto]) -> Ponto:
+    if len(pontos) < 1:
+        return Ponto(0, 0)
+    soma_x = 0
+    soma_y = 0
+    for ponto in pontos:
+        soma_x += ponto.x
+        soma_y += ponto.y
+    return Ponto(soma_x/len(pontos), soma_y/len(pontos))
 
 if __name__ == '__main__':
     root = tk.Tk()
