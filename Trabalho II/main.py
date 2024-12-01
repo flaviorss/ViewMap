@@ -1,10 +1,12 @@
+import math
 import os
-import string
 import tkinter as tk
 import xml.etree.ElementTree as ET
-from Formas import *
-from Clipping import *
+from math import radians
 from tkinter import filedialog, simpledialog, messagebox
+
+from Clipping import *
+
 
 def ler_window(arquivo) -> Recorte:
     root = ET.parse(arquivo).getroot()
@@ -50,7 +52,6 @@ def ler_formas(arquivo) -> list[Forma]:
     return formas
 
 
-
 class Visualizador:
     window: Recorte
     viewport: Recorte
@@ -58,6 +59,8 @@ class Visualizador:
     viewport_minimapa: Recorte
     formas: list[Forma]
     nome_arquivo: string
+    angulo_grau: int
+    caixa_minimapa: Poligono
     algClippingReta: string = "Cohen"
 
     def __init__(self, root):
@@ -90,14 +93,25 @@ class Visualizador:
         self.root.bind("<Left>", lambda event: self.mover_window(-1, 0))
         self.root.bind("<Right>", lambda event: self.mover_window(1, 0))
 
-        self.root.bind("<Control-z>", lambda event: self.zoom_window(1.1)) # fator de scala + 10%
-        self.root.bind("<Control-x>", lambda event: self.zoom_window(0.9)) # fator de scala - 10%
+        self.root.bind("<Control-z>", lambda event: self.zoom_window(1.1))  # fator de scala + 10%
+        self.root.bind("<Control-x>", lambda event: self.zoom_window(0.9))  # fator de scala - 10%
+
+        self.angulo_grau = 0
+        self.root.bind("<r>", lambda event: self.rotacionar_window(+10))
+        self.root.bind("<l>", lambda event: self.rotacionar_window(-10))
 
     def mover_window(self, deslocamento_x: float, deslocamento_y: float):
         transalacao(self.window.min, deslocamento_x, deslocamento_y)
         transalacao(self.window.max, deslocamento_x, deslocamento_y)
+
+        self.mover_minimapa(deslocamento_x, deslocamento_y)
+
         self.desenhar_viewport()
         self.desenhar_minimapa()
+
+    def mover_minimapa(self, deslocamento_x: float, deslocamento_y: float):
+        for ponto in self.caixa_minimapa.pontos:
+            transalacao(ponto, deslocamento_x, deslocamento_y)
 
     def zoom_window(self, fator_escala: float):
         ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
@@ -110,8 +124,57 @@ class Visualizador:
         transalacao(self.window.min, +ponto_medio_window.x, +ponto_medio_window.y)
         transalacao(self.window.max, +ponto_medio_window.x, +ponto_medio_window.y)
 
+        self.zoom_minimapa(fator_escala, ponto_medio_window)
+
         self.desenhar_viewport()
         self.desenhar_minimapa()
+
+    def zoom_minimapa(self, fator_escala: float, ponto_medio: Ponto):
+        for ponto in self.caixa_minimapa.pontos:
+            transalacao(ponto, -ponto_medio.x, -ponto_medio.y)
+
+        for ponto in self.caixa_minimapa.pontos:
+            escala(ponto, fator_escala)
+
+        for ponto in self.caixa_minimapa.pontos:
+            transalacao(ponto, +ponto_medio.x, +ponto_medio.y)
+
+    def rotacionar_window(self, deslocamento_grau: int):
+        self.angulo_grau = (self.angulo_grau + deslocamento_grau) % 360
+        angulo_rad = math.radians(self.angulo_grau)
+        ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
+
+        for forma in self.formas:
+            if isinstance(forma, Ponto):
+                rotacao(forma, angulo_rad)
+            elif isinstance(forma, Reta):
+                rotacao(forma.p1, angulo_rad)
+                rotacao(forma.p2, angulo_rad)
+            elif isinstance(forma, Poligono):
+                for ponto in forma.pontos:
+                    rotacao(ponto, angulo_rad)
+
+        self.rotacionar_minimapa()
+
+        self.desenhar_viewport()
+        self.desenhar_minimapa()
+
+    def rotacionar_minimapa(self):
+        ponto_medio = get_ponto_medio([
+            self.caixa_minimapa.pontos[0],
+            self.caixa_minimapa.pontos[1],
+            self.caixa_minimapa.pontos[2],
+            self.caixa_minimapa.pontos[3],
+        ])
+
+        for ponto in self.caixa_minimapa.pontos:
+            transalacao(ponto, -ponto_medio.x, -ponto_medio.y)
+
+        for ponto in self.caixa_minimapa.pontos:
+            rotacao(ponto, radians(-self.angulo_grau))
+
+        for ponto in self.caixa_minimapa.pontos:
+            transalacao(ponto, +ponto_medio.x, +ponto_medio.y)
 
     def abrir_arquivo(self):
         caminho_arquivo = filedialog.askopenfilename(
@@ -120,7 +183,7 @@ class Visualizador:
             filetypes=(("Arquivos XML", "*.xml"), ("Todos os arquivos", "*.*"))
         )
 
-        #Caixa de seleção do clipping de reta
+        # Caixa de seleção do clipping de reta
         opcao = simpledialog.askstring(
             "Escolha de Opção",
             "Algoritmo de clipping de reta:\n1. Cohen-Sutherland\n2. Liang-Barsky"
@@ -132,7 +195,8 @@ class Visualizador:
             messagebox.showinfo("Algoritmo Selecionado", "Liang-Barsky")
             self.algClippingReta = "Liang"
         else:
-            messagebox.showwarning("Aviso", "Nenhuma opção válida selecionada.\nPor padrão o algoritmo utilizado sera o de Cohen-Sutherland")
+            messagebox.showwarning("Aviso",
+                                   "Nenhuma opção válida selecionada.\nPor padrão o algoritmo utilizado sera o de Cohen-Sutherland")
 
         self.nome_arquivo = caminho_arquivo
         if caminho_arquivo:
@@ -144,6 +208,7 @@ class Visualizador:
         self.viewport = ler_view_port(caminho)
         self.formas = ler_formas(caminho)
         self.window_minimapa = self.criar_recorte_window_minimapa(escala=1)
+        self.caixa_minimapa = self.criar_caixa_minimapa()
         self.desenhar_minimapa()
         self.desenhar_viewport()
         pass
@@ -173,12 +238,7 @@ class Visualizador:
         for forma in self.formas:
             if isinstance(forma, Ponto):
                 ClippingPonto.ponto_contido_recorte(forma, self.window)
-                if forma.visivel:
-                    forma.desenhar(self.canvas, self.viewport, self.window)
-                else:
-                    print("Ponto não desenhado")
-            else:
-                forma.desenhar(self.canvas, self.viewport, self.window)
+            forma.desenhar(self.canvas, self.viewport, self.window, COORDENADAS_ALTERADAS)
         pass
 
     def desenhar_minimapa(self):
@@ -189,10 +249,14 @@ class Visualizador:
         self.canvas_minimap.pack(side="right", padx=10, pady=10)
 
         for forma in self.formas:
-            forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa)
+            forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa, COORDENADAS_ORIGINAIS)
         pass
-        caixa_minimapa = self.criar_caixa_minimapa()
-        caixa_minimapa.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa)
+
+        for ponto in self.caixa_minimapa.pontos:
+            rotacao(ponto, radians(-self.angulo_grau))
+
+        self.caixa_minimapa.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa,
+                                     COORDENADAS_ALTERADAS)
 
     def salvar_dados(self):
         if self.nome_arquivo is None:
@@ -210,13 +274,21 @@ class Visualizador:
         wmax.set("y", f"{self.window.max.y}")
         tree.write('output.xml')
 
+
 def transalacao(ponto: Ponto, deslocamento_x: float, deslocamento_y: float):
     ponto.x += deslocamento_x
     ponto.y += deslocamento_y
 
+
 def escala(ponto: Ponto, fator_escala: float):
     ponto.x *= fator_escala
     ponto.y *= fator_escala
+
+
+def rotacao(ponto: Ponto, angulo_rad: float):
+    ponto.x_alterado = (ponto.x * math.cos(angulo_rad)) - (ponto.y * math.sin(angulo_rad))
+    ponto.y_alterado = (ponto.x * math.sin(angulo_rad)) + (ponto.y * math.cos(angulo_rad))
+
 
 def get_ponto_medio(pontos: list[Ponto]) -> Ponto:
     if len(pontos) < 1:
@@ -226,7 +298,8 @@ def get_ponto_medio(pontos: list[Ponto]) -> Ponto:
     for ponto in pontos:
         soma_x += ponto.x
         soma_y += ponto.y
-    return Ponto(soma_x/len(pontos), soma_y/len(pontos))
+    return Ponto(soma_x / len(pontos), soma_y / len(pontos))
+
 
 if __name__ == '__main__':
     root = tk.Tk()
