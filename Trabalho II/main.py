@@ -4,7 +4,7 @@ import tkinter as tk
 import xml.etree.ElementTree as ET
 from Formas import *
 from Clipping import *
-from tkinter import filedialog
+from tkinter import filedialog, simpledialog, messagebox
 
 def ler_window(arquivo) -> Recorte:
     root = ET.parse(arquivo).getroot()
@@ -58,6 +58,7 @@ class Visualizador:
     viewport_minimapa: Recorte
     formas: list[Forma]
     nome_arquivo: string
+    algClippingReta: string = "Cohen"
 
     def __init__(self, root):
         self.root = root
@@ -119,8 +120,21 @@ class Visualizador:
             filetypes=(("Arquivos XML", "*.xml"), ("Todos os arquivos", "*.*"))
         )
 
-        self.nome_arquivo = caminho_arquivo
+        #Caixa de seleção do clipping de reta
+        opcao = simpledialog.askstring(
+            "Escolha de Opção",
+            "Algoritmo de clipping de reta:\n1. Cohen-Sutherland\n2. Liang-Barsky"
+        )
+        if opcao == "1":
+            messagebox.showinfo("Algoritmo Selecionado", "Cohen-Sutherland")
+            self.algClippingReta = "Cohen"
+        elif opcao == "2":
+            messagebox.showinfo("Algoritmo Selecionado", "Liang-Barsky")
+            self.algClippingReta = "Liang"
+        else:
+            messagebox.showwarning("Aviso", "Nenhuma opção válida selecionada.\nPor padrão o algoritmo utilizado sera o de Cohen-Sutherland")
 
+        self.nome_arquivo = caminho_arquivo
         if caminho_arquivo:
             self.carregar_arquivo(caminho_arquivo)
         pass
