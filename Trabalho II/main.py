@@ -141,40 +141,24 @@ class Visualizador:
 
     def rotacionar_window(self, deslocamento_grau: int):
         self.angulo_grau = (self.angulo_grau + deslocamento_grau) % 360
-        angulo_rad = math.radians(self.angulo_grau)
-        ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
+        ponto_medio_window = get_ponto_medio(self.caixa_minimapa.pontos)
 
         for forma in self.formas:
             if isinstance(forma, Ponto):
-                rotacao(forma, angulo_rad)
+                self.rotacionar_objeto([forma], self.angulo_grau, ponto_medio_window)
             elif isinstance(forma, Reta):
-                rotacao(forma.p1, angulo_rad)
-                rotacao(forma.p2, angulo_rad)
+                self.rotacionar_objeto([forma.p1, forma.p2], self.angulo_grau, ponto_medio_window)
             elif isinstance(forma, Poligono):
-                for ponto in forma.pontos:
-                    rotacao(ponto, angulo_rad)
+                self.rotacionar_objeto(forma.pontos, self.angulo_grau, ponto_medio_window)
 
-        self.rotacionar_minimapa()
+        self.rotacionar_objeto(self.caixa_minimapa.pontos, -self.angulo_grau, ponto_medio_window)
 
         self.desenhar_viewport()
         self.desenhar_minimapa()
 
-    def rotacionar_minimapa(self):
-        ponto_medio = get_ponto_medio([
-            self.caixa_minimapa.pontos[0],
-            self.caixa_minimapa.pontos[1],
-            self.caixa_minimapa.pontos[2],
-            self.caixa_minimapa.pontos[3],
-        ])
-
-        for ponto in self.caixa_minimapa.pontos:
-            transalacao(ponto, -ponto_medio.x, -ponto_medio.y)
-
-        for ponto in self.caixa_minimapa.pontos:
-            rotacao(ponto, radians(-self.angulo_grau))
-
-        for ponto in self.caixa_minimapa.pontos:
-            transalacao(ponto, +ponto_medio.x, +ponto_medio.y)
+    def rotacionar_objeto(self, pontos: list[Ponto], angulo_grau: int, ponto_medio_alvo: Ponto):
+        for ponto in pontos:
+            rotacao(ponto, ponto_medio_alvo, math.radians(angulo_grau))
 
     def abrir_arquivo(self):
         caminho_arquivo = filedialog.askopenfilename(
@@ -252,9 +236,6 @@ class Visualizador:
             forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa, COORDENADAS_ORIGINAIS)
         pass
 
-        for ponto in self.caixa_minimapa.pontos:
-            rotacao(ponto, radians(-self.angulo_grau))
-
         self.caixa_minimapa.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa,
                                      COORDENADAS_ALTERADAS)
 
@@ -274,21 +255,17 @@ class Visualizador:
         wmax.set("y", f"{self.window.max.y}")
         tree.write('output.xml')
 
+def rotacao(ponto, ponto_central, angulo_rad):
+    ponto.x_alterado = ponto_central.x + (ponto.x - ponto_central.x) * math.cos(angulo_rad) - (ponto.y - ponto_central.y) * math.sin(angulo_rad)
+    ponto.y_alterado = ponto_central.y + (ponto.x - ponto_central.y) * math.sin(angulo_rad) + (ponto.y - ponto_central.y) * math.cos(angulo_rad)
 
 def transalacao(ponto: Ponto, deslocamento_x: float, deslocamento_y: float):
     ponto.x += deslocamento_x
     ponto.y += deslocamento_y
 
-
 def escala(ponto: Ponto, fator_escala: float):
     ponto.x *= fator_escala
     ponto.y *= fator_escala
-
-
-def rotacao(ponto: Ponto, angulo_rad: float):
-    ponto.x_alterado = (ponto.x * math.cos(angulo_rad)) - (ponto.y * math.sin(angulo_rad))
-    ponto.y_alterado = (ponto.x * math.sin(angulo_rad)) + (ponto.y * math.cos(angulo_rad))
-
 
 def get_ponto_medio(pontos: list[Ponto]) -> Ponto:
     if len(pontos) < 1:
