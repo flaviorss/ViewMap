@@ -111,7 +111,7 @@ class Visualizador:
 
     def mover_minimapa(self, deslocamento_x: float, deslocamento_y: float):
         for ponto in self.caixa_minimapa.pontos:
-            transalacao(ponto, deslocamento_x, deslocamento_y)
+            transalacao_(ponto, deslocamento_x, deslocamento_y)
 
     def zoom_window(self, fator_escala: float):
         ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
@@ -131,17 +131,17 @@ class Visualizador:
 
     def zoom_minimapa(self, fator_escala: float, ponto_medio: Ponto):
         for ponto in self.caixa_minimapa.pontos:
-            transalacao(ponto, -ponto_medio.x, -ponto_medio.y)
+            transalacao_(ponto, -ponto_medio.x, -ponto_medio.y)
 
         for ponto in self.caixa_minimapa.pontos:
-            escala(ponto, fator_escala)
+            escala_(ponto, fator_escala)
 
         for ponto in self.caixa_minimapa.pontos:
-            transalacao(ponto, +ponto_medio.x, +ponto_medio.y)
+            transalacao_(ponto, +ponto_medio.x, +ponto_medio.y)
 
     def rotacionar_window(self, deslocamento_grau: int):
         self.angulo_grau = (self.angulo_grau + deslocamento_grau) % 360
-        ponto_medio_window = get_ponto_medio(self.caixa_minimapa.pontos)
+        ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
 
         for forma in self.formas:
             if isinstance(forma, Ponto):
@@ -267,6 +267,14 @@ def escala(ponto: Ponto, fator_escala: float):
     ponto.x *= fator_escala
     ponto.y *= fator_escala
 
+def transalacao_(ponto: Ponto, deslocamento_x: float, deslocamento_y: float):
+    ponto.x_alterado += deslocamento_x
+    ponto.y_alterado += deslocamento_y
+
+def escala_(ponto: Ponto, fator_escala: float):
+    ponto.x_alterado *= fator_escala
+    ponto.y_alterado *= fator_escala
+
 def get_ponto_medio(pontos: list[Ponto]) -> Ponto:
     if len(pontos) < 1:
         return Ponto(0, 0)
@@ -276,7 +284,6 @@ def get_ponto_medio(pontos: list[Ponto]) -> Ponto:
         soma_x += ponto.x
         soma_y += ponto.y
     return Ponto(soma_x / len(pontos), soma_y / len(pontos))
-
 
 if __name__ == '__main__':
     root = tk.Tk()
