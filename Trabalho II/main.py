@@ -222,6 +222,8 @@ class Visualizador:
         for forma in self.formas:
             if isinstance(forma, Ponto):
                 ClippingPonto.ponto_contido_recorte(forma, self.window)
+            if isinstance(forma, Poligono):
+                WeilerAtherton.clipping_poligono(forma, self.window)
             forma.desenhar(self.canvas, self.viewport, self.window, COORDENADAS_ALTERADAS)
         pass
 
