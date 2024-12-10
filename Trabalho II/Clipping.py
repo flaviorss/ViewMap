@@ -6,6 +6,11 @@ class PosPonto(int, Enum):
     ESQUERDA = 1
     DIREITA = 3
 
+class Pos(Enum):
+    FORA = 0
+    DENTRO = 1
+    EM_CIMA = 2
+
 # Variaveis Globais
 INSIDE = 0  # Dentro da janela
 LEFT = 1  # Para a esquerda da janela
@@ -137,3 +142,39 @@ def ponto_interseccao(k, l, m, n):
     x = k.x + (l.x - k.x) * s
     y = k.y + (l.y - k.y) * s
     return Ponto(x, y)
+
+def x_min_poli(poli:Poligono):
+    xMin = poli.pontos[0].x
+    for i in range(len(poli.pontos)):
+        if poli.pontos[i].x < xMin:
+            xMin = poli.pontos[i].x
+    return xMin
+
+def ponto_no_intervalo(segA: Reta, c: Ponto)->bool:
+    if ((segA.p1.x <= c.x <= segA.p2.x) or (segA.p1.x >= c.x >= segA.p2.x)) and ((segA.p1.y <= c.y <= segA.p2.y) or (
+            segA.p1.y >= c.y >= segA.p2.y)):
+        return True
+    else:
+        return False
+
+def y_min_segmento(seg: Reta):
+    if seg.p1.y <= seg.p2.y:
+        return seg.p1.y
+    else:
+        return seg.p2.y
+
+def dentro_poli(poli: Poligono, alvo: Ponto):
+    qtdInterseccoes = 0
+    segAlvo = Reta(alvo, Ponto(x_min_poli(poli)-1, alvo.y))
+    for i in range(len(poli.pontos)):
+        segPoli = Reta(poli.pontos[i], poli.pontos[(i+1)%len(poli.pontos)])
+        # 1º caso, quando o ponto alvo em cima da fronteira
+        if posicao_ponto(segPoli, alvo) == PosPonto.SOBRE and ponto_no_intervalo(segPoli, alvo) == True:
+            return Pos.EM_CIMA
+        elif intersecta(segPoli, segAlvo): # 2º caso, quando ao segmento alvo intersecta o segmento do poligono e ponto do segmento do poligono com o menor y nao esta sobre o segmento alvo
+            if not ((posicao_ponto(segAlvo, segPoli.p1) == PosPonto.SOBRE and y_min_segmento(segPoli) == segPoli.p1.y) or (posicao_ponto(segAlvo, segPoli.p2) == PosPonto.SOBRE and y_min_segmento(segPoli) == segPoli.p2.y)):
+                qtdInterseccoes += 1
+    if qtdInterseccoes % 2 == 0:
+        return Pos.FORA
+    else:
+        return Pos.DENTRO
