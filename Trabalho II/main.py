@@ -42,7 +42,7 @@ def ler_formas(arquivo) -> list[Forma]:
                 pontos: list[Ponto] = []
                 for ponto in child:
                     pontos.append(Ponto(float(ponto.attrib["x"]), float(ponto.attrib["y"])))
-                formas.append(Reta(pontos[0], pontos[1], cor))
+                formas.append(Segmento(pontos[0], pontos[1], cor))
             case "poligono":
                 cor = child.attrib["cor"]
                 pontos: list[Ponto] = []
@@ -104,14 +104,8 @@ class Visualizador:
         transalacao(self.window.min, deslocamento_x, deslocamento_y)
         transalacao(self.window.max, deslocamento_x, deslocamento_y)
 
-        self.mover_minimapa(deslocamento_x, deslocamento_y)
-
         self.desenhar_viewport()
         self.desenhar_minimapa()
-
-    def mover_minimapa(self, deslocamento_x: float, deslocamento_y: float):
-        for ponto in self.caixa_minimapa.pontos:
-            transalacao_(ponto, deslocamento_x, deslocamento_y)
 
     def zoom_window(self, fator_escala: float):
         ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
@@ -124,41 +118,16 @@ class Visualizador:
         transalacao(self.window.min, +ponto_medio_window.x, +ponto_medio_window.y)
         transalacao(self.window.max, +ponto_medio_window.x, +ponto_medio_window.y)
 
-        self.zoom_minimapa(fator_escala, ponto_medio_window)
-
         self.desenhar_viewport()
         self.desenhar_minimapa()
-
-    def zoom_minimapa(self, fator_escala: float, ponto_medio: Ponto):
-        for ponto in self.caixa_minimapa.pontos:
-            transalacao_(ponto, -ponto_medio.x, -ponto_medio.y)
-
-        for ponto in self.caixa_minimapa.pontos:
-            escala_(ponto, fator_escala)
-
-        for ponto in self.caixa_minimapa.pontos:
-            transalacao_(ponto, +ponto_medio.x, +ponto_medio.y)
 
     def rotacionar_window(self, deslocamento_grau: int):
         self.angulo_grau = (self.angulo_grau + deslocamento_grau) % 360
         ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
 
-        for forma in self.formas:
-            if isinstance(forma, Ponto):
-                self.rotacionar_objeto([forma], self.angulo_grau, ponto_medio_window)
-            elif isinstance(forma, Reta):
-                self.rotacionar_objeto([forma.p1, forma.p2], self.angulo_grau, ponto_medio_window)
-            elif isinstance(forma, Poligono):
-                self.rotacionar_objeto(forma.pontos, self.angulo_grau, ponto_medio_window)
-
-        self.rotacionar_objeto(self.caixa_minimapa.pontos, -self.angulo_grau, ponto_medio_window)
-
         self.desenhar_viewport()
         self.desenhar_minimapa()
 
-    def rotacionar_objeto(self, pontos: list[Ponto], angulo_grau: int, ponto_medio_alvo: Ponto):
-        for ponto in pontos:
-            rotacao(ponto, ponto_medio_alvo, math.radians(angulo_grau))
 
     def abrir_arquivo(self):
         caminho_arquivo = filedialog.askopenfilename(
@@ -224,7 +193,7 @@ class Visualizador:
                 ClippingPonto.ponto_contido_recorte(forma, self.window)
             if isinstance(forma, Poligono):
                 WeilerAtherton.clipping_poligono(forma, self.window)
-            forma.desenhar(self.canvas, self.viewport, self.window, COORDENADAS_ALTERADAS)
+            forma.desenhar(self.canvas, self.viewport, self.window)
         pass
 
     def desenhar_minimapa(self):
@@ -235,11 +204,10 @@ class Visualizador:
         self.canvas_minimap.pack(side="right", padx=10, pady=10)
 
         for forma in self.formas:
-            forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa, COORDENADAS_ORIGINAIS)
+            forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa)
         pass
 
-        self.caixa_minimapa.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa,
-                                     COORDENADAS_ALTERADAS)
+        self.caixa_minimapa.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa)
 
     def salvar_dados(self):
         if self.nome_arquivo is None:
@@ -268,14 +236,6 @@ def transalacao(ponto: Ponto, deslocamento_x: float, deslocamento_y: float):
 def escala(ponto: Ponto, fator_escala: float):
     ponto.x *= fator_escala
     ponto.y *= fator_escala
-
-def transalacao_(ponto: Ponto, deslocamento_x: float, deslocamento_y: float):
-    ponto.x_alterado += deslocamento_x
-    ponto.y_alterado += deslocamento_y
-
-def escala_(ponto: Ponto, fator_escala: float):
-    ponto.x_alterado *= fator_escala
-    ponto.y_alterado *= fator_escala
 
 def get_ponto_medio(pontos: list[Ponto]) -> Ponto:
     if len(pontos) < 1:

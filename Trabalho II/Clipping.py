@@ -42,14 +42,14 @@ class CohenSutherland():
 
         return codigo
 
-    def clipping_reta(self, reta: Reta, window: Recorte):
+    def clipping_reta(self, reta: Segmento, window: Recorte):
         c1 = CohenSutherland.define_codigo(reta.p1, window)
         c2 = CohenSutherland.define_codigo(reta.p2, window)
 
         while True:
             if c1 == INSIDE and c2 == INSIDE:
                 reta.visivel = True
-                return Reta(reta.p1, reta.p2)
+                return Segmento(reta.p1, reta.p2)
             elif c1 != 0 and c2 != 0:
                 reta.visivel = False
                 return None
@@ -90,16 +90,16 @@ class WeilerAtherton():
         novos_poligonos = list[Poligono]
 
         arestas_window = [
-            Reta(window.min, Ponto(window.max.x, window.min.y)),  # Aresta inferior
-            Reta(Ponto(window.max.x, window.min.y), window.max),  # Aresta direita
-            Reta(window.max, Ponto(window.min.x, window.max.y)),  # Aresta superior
-            Reta(Ponto(window.min.x, window.max.y), window.min)  # Aresta esquerda
+            Segmento(window.min, Ponto(window.max.x, window.min.y)),  # Aresta inferior
+            Segmento(Ponto(window.max.x, window.min.y), window.max),  # Aresta direita
+            Segmento(window.max, Ponto(window.min.x, window.max.y)),  # Aresta superior
+            Segmento(Ponto(window.min.x, window.max.y), window.min)  # Aresta esquerda
         ]
 
         for i in range(len(poligono.pontos)):
             p1 = poligono.pontos[i]
             p2 = poligono.pontos[(i + 1) % len(poligono.pontos)]  # Próximo ponto (fechando o polígono)
-            reta_poligono = Reta(p1, p2)
+            reta_poligono = Segmento(p1, p2)
             print(f"Aresta do polígono: ({p1.x}, {p1.y}) -> ({p2.x}, {p2.y})")
             for aresta in arestas_window:
                 inter = intersecta(reta_poligono, aresta)
@@ -113,7 +113,7 @@ class WeilerAtherton():
 def produto_vetorial(a: Ponto, b: Ponto, c: Ponto):
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
 
-def posicao_ponto(seg: Reta, c: Ponto) -> PosPonto:
+def posicao_ponto(seg: Segmento, c: Ponto) -> PosPonto:
     produto = produto_vetorial(seg.p1, seg.p2, c)
     if produto == 0:
         return PosPonto.SOBRE
@@ -122,11 +122,11 @@ def posicao_ponto(seg: Reta, c: Ponto) -> PosPonto:
     else:
         return PosPonto.DIREITA
 
-def intersecta(segA: Reta, segB: Reta)-> bool:
+def intersecta(segA: Segmento, segB: Segmento)-> bool:
     a1 = posicao_ponto(segB, segA.p1)
     a2 = posicao_ponto(segB, segA.p2)
-    b1 = posicao_ponto(Reta(segA.p1, segA.p2), segB.p1)
-    b2 = posicao_ponto(Reta(segA.p1, segA.p2), segB.p2)
+    b1 = posicao_ponto(Segmento(segA.p1, segA.p2), segB.p1)
+    b2 = posicao_ponto(Segmento(segA.p1, segA.p2), segB.p2)
     res = a1 * a2 + b1 * b2
     if res == 6 or res == 3:
         return True
@@ -150,14 +150,14 @@ def x_min_poli(poli:Poligono):
             xMin = poli.pontos[i].x
     return xMin
 
-def ponto_no_intervalo(segA: Reta, c: Ponto)->bool:
+def ponto_no_intervalo(segA: Segmento, c: Ponto)->bool:
     if ((segA.p1.x <= c.x <= segA.p2.x) or (segA.p1.x >= c.x >= segA.p2.x)) and ((segA.p1.y <= c.y <= segA.p2.y) or (
             segA.p1.y >= c.y >= segA.p2.y)):
         return True
     else:
         return False
 
-def y_min_segmento(seg: Reta):
+def y_min_segmento(seg: Segmento):
     if seg.p1.y <= seg.p2.y:
         return seg.p1.y
     else:
@@ -165,9 +165,9 @@ def y_min_segmento(seg: Reta):
 
 def dentro_poli(poli: Poligono, alvo: Ponto):
     qtdInterseccoes = 0
-    segAlvo = Reta(alvo, Ponto(x_min_poli(poli)-1, alvo.y))
+    segAlvo = Segmento(alvo, Ponto(x_min_poli(poli) - 1, alvo.y))
     for i in range(len(poli.pontos)):
-        segPoli = Reta(poli.pontos[i], poli.pontos[(i+1)%len(poli.pontos)])
+        segPoli = Segmento(poli.pontos[i], poli.pontos[(i + 1) % len(poli.pontos)])
         # 1º caso, quando o ponto alvo em cima da fronteira
         if posicao_ponto(segPoli, alvo) == PosPonto.SOBRE and ponto_no_intervalo(segPoli, alvo) == True:
             return Pos.EM_CIMA
