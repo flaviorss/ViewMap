@@ -2,7 +2,6 @@ import math
 import os
 import tkinter as tk
 import xml.etree.ElementTree as ET
-from math import radians
 from tkinter import filedialog, simpledialog, messagebox
 
 from Clipping import *
@@ -101,33 +100,22 @@ class Visualizador:
         self.root.bind("<l>", lambda event: self.rotacionar_window(-10))
 
     def mover_window(self, deslocamento_x: float, deslocamento_y: float):
-        transalacao(self.window.min, deslocamento_x, deslocamento_y)
-        transalacao(self.window.max, deslocamento_x, deslocamento_y)
+        self.window.min.x += deslocamento_x
+        self.window.min.y += deslocamento_y
+        self.window.max.x += deslocamento_x
+        self.window.max.y += deslocamento_y
 
         self.desenhar_viewport()
         self.desenhar_minimapa()
 
     def zoom_window(self, fator_escala: float):
-        ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
-        transalacao(self.window.min, -ponto_medio_window.x, -ponto_medio_window.y)
-        transalacao(self.window.max, -ponto_medio_window.x, -ponto_medio_window.y)
-
-        escala(self.window.min, fator_escala)
-        escala(self.window.max, fator_escala)
-
-        transalacao(self.window.min, +ponto_medio_window.x, +ponto_medio_window.y)
-        transalacao(self.window.max, +ponto_medio_window.x, +ponto_medio_window.y)
 
         self.desenhar_viewport()
         self.desenhar_minimapa()
 
     def rotacionar_window(self, deslocamento_grau: int):
-        self.angulo_grau = (self.angulo_grau + deslocamento_grau) % 360
-        ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
-
         self.desenhar_viewport()
         self.desenhar_minimapa()
-
 
     def abrir_arquivo(self):
         caminho_arquivo = filedialog.askopenfilename(
@@ -193,7 +181,7 @@ class Visualizador:
                 ClippingPonto.ponto_contido_recorte(forma, self.window)
             if isinstance(forma, Poligono):
                 WeilerAtherton.clipping_poligono(forma, self.window)
-            forma.desenhar(self.canvas, self.viewport, self.window)
+            forma.desenhar(self.canvas, self.viewport, self.window, self.angulo_grau)
         pass
 
     def desenhar_minimapa(self):
@@ -204,10 +192,10 @@ class Visualizador:
         self.canvas_minimap.pack(side="right", padx=10, pady=10)
 
         for forma in self.formas:
-            forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa)
+            forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa, self.angulo_grau)
         pass
 
-        self.caixa_minimapa.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa)
+        self.caixa_minimapa.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa, self.angulo_grau)
 
     def salvar_dados(self):
         if self.nome_arquivo is None:
@@ -224,28 +212,6 @@ class Visualizador:
         wmax.set("x", f"{self.window.max.x}")
         wmax.set("y", f"{self.window.max.y}")
         tree.write('output.xml')
-
-def rotacao(ponto, ponto_central, angulo_rad):
-    ponto.x_alterado = ponto_central.x + (ponto.x - ponto_central.x) * math.cos(angulo_rad) - (ponto.y - ponto_central.y) * math.sin(angulo_rad)
-    ponto.y_alterado = ponto_central.y + (ponto.x - ponto_central.y) * math.sin(angulo_rad) + (ponto.y - ponto_central.y) * math.cos(angulo_rad)
-
-def transalacao(ponto: Ponto, deslocamento_x: float, deslocamento_y: float):
-    ponto.x += deslocamento_x
-    ponto.y += deslocamento_y
-
-def escala(ponto: Ponto, fator_escala: float):
-    ponto.x *= fator_escala
-    ponto.y *= fator_escala
-
-def get_ponto_medio(pontos: list[Ponto]) -> Ponto:
-    if len(pontos) < 1:
-        return Ponto(0, 0)
-    soma_x = 0
-    soma_y = 0
-    for ponto in pontos:
-        soma_x += ponto.x
-        soma_y += ponto.y
-    return Ponto(soma_x / len(pontos), soma_y / len(pontos))
 
 if __name__ == '__main__':
     root = tk.Tk()
