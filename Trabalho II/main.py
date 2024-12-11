@@ -100,10 +100,8 @@ class Visualizador:
         self.root.bind("<l>", lambda event: self.rotacionar_window(-10))
 
     def mover_window(self, deslocamento_x: float, deslocamento_y: float):
-        self.window.min.x += deslocamento_x
-        self.window.min.y += deslocamento_y
-        self.window.max.x += deslocamento_x
-        self.window.max.y += deslocamento_y
+        transalacao(self.window.min, deslocamento_x, deslocamento_y)
+        transalacao(self.window.max, deslocamento_x, deslocamento_y)
 
         self.desenhar_viewport()
         self.desenhar_minimapa()
@@ -120,6 +118,8 @@ class Visualizador:
         self.desenhar_minimapa()
 
     def rotacionar_window(self, deslocamento_grau: int):
+        self.angulo_grau = (self.angulo_grau + deslocamento_grau) % 360
+
         self.desenhar_viewport()
         self.desenhar_minimapa()
 
