@@ -3,7 +3,6 @@ import os
 import tkinter as tk
 import xml.etree.ElementTree as ET
 from tkinter import filedialog, simpledialog, messagebox
-
 from Clipping import *
 
 
@@ -87,14 +86,36 @@ class Visualizador:
         self.canvas_minimap.pack(side="right", padx=10, pady=10)
         self.viewport_minimapa = Recorte(Ponto(0, 0), Ponto(160, 120))
 
+        # Frame dos Botões
+        self.frame_botoes = tk.Frame(root)
+        self.frame_botoes.pack(side="bottom", anchor="center", pady="10")
+        # Botões de Movimentação
+        self.botao_cima = tk.Button(self.frame_botoes, text="🠕", command=lambda: self.mover_window(0, 1), bd=1, relief="solid", padx=3.5, bg="LightBlue")
+        self.botao_cima.grid(row=0, column=1, padx=2, pady=2)
+        self.botao_esquerda = tk.Button(self.frame_botoes, text="🠔", command=lambda: self.mover_window(-1, 0), bd=1, relief="solid", bg="LightBlue")
+        self.botao_esquerda.grid(row=1, column=0, padx=2, pady=2)
+        self.botao_direita = tk.Button(self.frame_botoes, text="➞", command=lambda: self.mover_window(1, 0), bd=1, relief="solid", bg="LightBlue")
+        self.botao_direita.grid(row=1, column=2, padx=2, pady=2)
+        self.botao_baixo = tk.Button(self.frame_botoes, text="🠗", command=lambda: self.mover_window(0, -1), bd=1, relief="solid", padx=3.5, bg="LightBlue")
+        self.botao_baixo.grid(row=2, column=1, padx=2, pady=2)
+        # Botões de Zoom
+        self.bt_zoom_mais = tk.Button(self.frame_botoes, text="+", command=lambda: self.zoom_window(0.9), bd=1, relief="solid", padx=2.5, bg="LightYellow")
+        self.bt_zoom_mais.grid(row=1, column=4, padx=5, pady=2)
+        self.bt_zoom_menos = tk.Button(self.frame_botoes, text="-", command=lambda: self.zoom_window(1.1), bd=1, relief="solid", padx=3.5, bg="LightYellow")
+        self.bt_zoom_menos.grid(row=1, column=5, padx=3, pady=2)
+        # Botões de Rotação
+        self.bt_rotacao_dir = tk.Button(self.frame_botoes, text="D", command=lambda: self.rotacionar_window(+10), bd=1, relief="solid", padx=3.5, bg="Salmon")
+        self.bt_rotacao_dir.grid(row=1, column=7, padx=3, pady=2)
+        self.bt_rotacao_esq = tk.Button(self.frame_botoes, text="E", command=lambda: self.rotacionar_window(-10), bd=1, relief="solid", padx=3.5, bg="Salmon")
+        self.bt_rotacao_esq.grid(row=1, column=8, padx=3, pady=2)
+
+        #Teclas para movimentação
         self.root.bind("<Up>", lambda event: self.mover_window(0, 1))
         self.root.bind("<Down>", lambda event: self.mover_window(0, -1))
         self.root.bind("<Left>", lambda event: self.mover_window(-1, 0))
         self.root.bind("<Right>", lambda event: self.mover_window(1, 0))
-
         self.root.bind("<Control-z>", lambda event: self.zoom_window(1.1))  # fator de scala + 10%
         self.root.bind("<Control-x>", lambda event: self.zoom_window(0.9))  # fator de scala - 10%
-
         self.angulo_grau = 0
         self.root.bind("<r>", lambda event: self.rotacionar_window(+10))
         self.root.bind("<l>", lambda event: self.rotacionar_window(-10))
