@@ -153,7 +153,7 @@ class Visualizador:
 
         # Caixa de seleção do clipping de reta
         opcao = simpledialog.askstring(
-            "Escolha de Opção",
+            "...",
             "Algoritmo de clipping de reta:\n1. Cohen-Sutherland\n2. Liang-Barsky"
         )
         if opcao == "1":
@@ -163,8 +163,8 @@ class Visualizador:
             messagebox.showinfo("Algoritmo Selecionado", "Liang-Barsky")
             self.algClippingReta = "Liang"
         else:
-            messagebox.showwarning("Aviso",
-                                   "Nenhuma opção válida selecionada.\nPor padrão o algoritmo utilizado sera o de Cohen-Sutherland")
+            messagebox.showwarning("Aviso","Nenhuma opção válida selecionada.\nPor padrão o algoritmo utilizado sera o de Cohen-Sutherland")
+            self.algClippingReta = "Cohen"
 
         self.nome_arquivo = caminho_arquivo
         if caminho_arquivo:
