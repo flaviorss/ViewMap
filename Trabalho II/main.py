@@ -109,7 +109,13 @@ class Visualizador:
         self.desenhar_minimapa()
 
     def zoom_window(self, fator_escala: float):
-
+        ponto_medio_window = get_ponto_medio([self.window.min, self.window.max])
+        transalacao(self.window.min, -ponto_medio_window.x, -ponto_medio_window.y)
+        transalacao(self.window.max, -ponto_medio_window.x, -ponto_medio_window.y)
+        escala(self.window.min, fator_escala)
+        escala(self.window.max, fator_escala)
+        transalacao(self.window.min, +ponto_medio_window.x, +ponto_medio_window.y)
+        transalacao(self.window.max, +ponto_medio_window.x, +ponto_medio_window.y)
         self.desenhar_viewport()
         self.desenhar_minimapa()
 

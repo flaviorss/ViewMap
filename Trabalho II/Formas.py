@@ -115,3 +115,11 @@ def get_matriz_tranformacoes(window: Recorte, angulo_rad: float):
     ])
 
     return escalonamento @ translacao @ rotacao
+
+def transalacao(ponto: Ponto, deslocamento_x: float, deslocamento_y: float):
+    ponto.x += deslocamento_x
+    ponto.y += deslocamento_y
+
+def escala(ponto: Ponto, fator_escala: float):
+    ponto.x *= fator_escala
+    ponto.y *= fator_escala
