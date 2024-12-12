@@ -219,9 +219,10 @@ class Visualizador:
         self.canvas_minimap.pack(side="right", padx=10, pady=10)
 
         for forma in self.formas:
-            forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa, self.angulo_grau)
+            forma.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa, 0)
         pass
 
+        self.caixa_minimapa = self.criar_caixa_minimapa()
         self.caixa_minimapa.desenhar(self.canvas_minimap, self.viewport_minimapa, self.window_minimapa, self.angulo_grau)
 
     def salvar_dados(self):
