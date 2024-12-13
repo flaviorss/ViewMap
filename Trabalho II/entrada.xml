@@ -2,15 +2,13 @@
 <!-- comentários... -->
 <dados>
 	<viewport>
-		<!-- viewport para uma janela de visualização de 800x600 razão de aspecto de 4:3 --> 
 		<vpmin x="0" y="0"/>
-		<vpmax x="800" y="600"/>
+		<vpmax x="800" y="800"/>
 	</viewport>
 	
 	<window>
-		<!-- procure manter a mesma razão de aspecto da viewport para evitar distorções -->
 		<wmin x="0.0" y="0.0"/>
-		<wmax x="10.0" y="7.5"/>
+		<wmax x="10.0" y="10.0"/>
 	</window>
 
 	<ponto cor="black" x="0.5" y="2"/>
