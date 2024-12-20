@@ -208,7 +208,7 @@ class Visualizador:
                 ClippingPonto.ponto_contido_recorte(forma, self.window)
             if isinstance(forma, Poligono):
                 WeilerAtherton.clipping_poligono(forma, self.window)
-            forma.desenhar(self.canvas, self.viewport, self.window, self.angulo_grau)
+            forma.desenhar(self.canvas, self.viewport, self.window, -self.angulo_grau)
         pass
 
     def desenhar_minimapa(self):
