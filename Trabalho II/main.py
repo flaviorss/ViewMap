@@ -205,10 +205,25 @@ class Visualizador:
 
         for forma in self.formas:
             if isinstance(forma, Ponto):
-                ClippingPonto.ponto_contido_recorte(forma, self.window)
-            if isinstance(forma, Poligono):
-                WeilerAtherton.clipping_poligono(forma, self.window)
-            forma.desenhar(self.canvas, self.viewport, self.window, self.angulo_grau)
+                novo_ponto = transformada(Ponto(forma.x, forma.y), self.window, self.viewport, self.angulo_grau)
+                novo_ponto = Ponto(float(novo_ponto[0,0]), float(novo_ponto[1,0]))
+                ClippingPonto.ponto_contido_recorte(novo_ponto)
+                if novo_ponto.visivel:
+                    novo_ponto.desenhar(self.canvas, self.viewport, self.window, self.angulo_grau, "vp")
+            elif isinstance(forma, Segmento):
+                novo_p1 = transformada(Ponto(forma.p1.x, forma.p1.y), self.window, self.viewport, self.angulo_grau)
+                novo_p2 = transformada(Ponto(forma.p2.x, forma.p2.y), self.window, self.viewport, self.angulo_grau)
+                novo_p1 = Ponto(float(novo_p1[0,0]), float(novo_p1[1,0]))
+                novo_p2 = Ponto(float(novo_p2[0,0]), float(novo_p2[1,0]))
+                auxSegmento = Segmento(novo_p1, novo_p2, forma.cor)
+                if self.algClippingReta == "Liang":
+                    LiangBarsky.clipping_reta(auxSegmento)
+                else:
+                    CohenSutherland.clipping_reta(auxSegmento)
+                if auxSegmento.visivel:
+                    auxSegmento.desenhar(self.canvas, self.viewport, self.window, self.angulo_grau, "vp")
+                else:
+                    print("Reta não desenhada")
         pass
 
     def desenhar_minimapa(self):

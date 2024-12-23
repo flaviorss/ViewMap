@@ -20,10 +20,14 @@ class Ponto(Forma):
         self.x = x
         self.y = y
 
-    def desenhar(self, canvas, viewport, window, angulo):
-        novo_ponto = transformada(Ponto(self.x, self.y), window, viewport, angulo)
-        aux = transformada_viewport(Ponto(float(novo_ponto[0, 0]), float(novo_ponto[1, 0])), viewport)
-        canvas.create_oval(aux.x - 1, aux.y - 1, aux.x + 1, aux.y + 1, fill=self.cor)
+    def desenhar(self, canvas, viewport, window, angulo, canva = "mm"):
+        if canva == "mm":
+            novo_ponto = transformada(Ponto(self.x, self.y), window, viewport, angulo)
+            aux = transformada_viewport(Ponto(float(novo_ponto[0, 0]), float(novo_ponto[1, 0])), viewport)
+            canvas.create_oval(aux.x - 1, aux.y - 1, aux.x + 1, aux.y + 1, fill=self.cor)
+        else:
+            aux = transformada_viewport(Ponto(float(self.x), float(self.y)), viewport)
+            canvas.create_oval(aux.x - 1, aux.y - 1, aux.x + 1, aux.y + 1, fill=self.cor)
 
 
 class Segmento(Forma):
@@ -33,12 +37,17 @@ class Segmento(Forma):
         self.p1 = ponto1
         self.p2 = ponto2
 
-    def desenhar(self, canvas, viewport, window, angulo):
-        novo_p1 = transformada(self.p1, window, viewport, angulo)
-        novo_p2 = transformada(self.p2, window, viewport, angulo)
-        aux_p1 = transformada_viewport(Ponto(float(novo_p1[0, 0]), float(novo_p1[1, 0])), viewport)
-        aux_p2 = transformada_viewport(Ponto(float(novo_p2[0, 0]), float(novo_p2[1, 0])), viewport)
-        canvas.create_line(aux_p1.x, aux_p1.y, aux_p2.x, aux_p2.y, fill=self.cor)
+    def desenhar(self, canvas, viewport, window, angulo, canva = "mm"):
+        if canva == "mm":
+            novo_p1 = transformada(self.p1, window, viewport, angulo)
+            novo_p2 = transformada(self.p2, window, viewport, angulo)
+            aux_p1 = transformada_viewport(Ponto(float(novo_p1[0, 0]), float(novo_p1[1, 0])), viewport)
+            aux_p2 = transformada_viewport(Ponto(float(novo_p2[0, 0]), float(novo_p2[1, 0])), viewport)
+            canvas.create_line(aux_p1.x, aux_p1.y, aux_p2.x, aux_p2.y, fill=self.cor)
+        else:
+            aux_p1 = transformada_viewport(Ponto(float(self.p1.x), float(self.p1.y)), viewport)
+            aux_p2 = transformada_viewport(Ponto(float(self.p2.x), float(self.p2.y)), viewport)
+            canvas.create_line(aux_p1.x, aux_p1.y, aux_p2.x, aux_p2.y, fill=self.cor)
 
 
 class Poligono(Forma):

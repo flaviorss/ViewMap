@@ -12,7 +12,8 @@ class Pos(Enum):
     EM_CIMA = 2
 
 class ClippingPonto():
-    def ponto_contido_recorte(ponto: Ponto, window: Recorte):
+    def ponto_contido_recorte(ponto: Ponto):
+        window = Recorte(Ponto(-1, -1), Ponto(1, 1))
         if window.min.x <= ponto.x <= window.max.x and window.min.y <= ponto.y <= window.max.y:
             ponto.visivel = True
         else:
@@ -34,7 +35,8 @@ class CohenSutherland():
 
         return codigo
 
-    def clipping_reta(reta: Segmento, window: Recorte):
+    def clipping_reta(reta: Segmento):
+        window = Recorte(Ponto(-1,-1),Ponto(1,1))
         done = False
         codOut = 0
         p = Ponto(0,0)
@@ -87,7 +89,8 @@ class CohenSutherland():
 
 class LiangBarsky():
 
-    def clipping_reta(reta: Segmento, window: Recorte):
+    def clipping_reta(reta: Segmento):
+        window = Recorte(Ponto(-1, -1), Ponto(1, 1))
         reta.visivel = True
         p = [0] * 4
         q = [0] * 4
