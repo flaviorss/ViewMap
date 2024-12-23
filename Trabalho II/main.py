@@ -225,6 +225,7 @@ class Visualizador:
                 else:
                     print("Reta não desenhada")
         pass
+        print("-----##-----")
 
     def desenhar_minimapa(self):
         if hasattr(self, 'canvas_minimap'):

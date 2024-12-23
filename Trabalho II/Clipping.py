@@ -29,15 +29,16 @@ class CohenSutherland():
             codigo += 1
 
         if ponto.y > window.max.y:
-            codigo = 8
+            codigo |= 8
         elif ponto.y < window.min.y:
-            codigo = 4
+            codigo |= 4
 
         return codigo
 
     def clipping_reta(reta: Segmento):
         window = Recorte(Ponto(-1,-1),Ponto(1,1))
         done = False
+        reta.visivel = False
         codOut = 0
         p = Ponto(0,0)
         codA = CohenSutherland.define_codigo(reta.p1, window)
@@ -120,11 +121,14 @@ class LiangBarsky():
             elif q[i] < 0:
                 reta.visivel = False
 
-        if reta.visivel and u1 < u2:
+        #if reta.visivel and u1 < u2:
+        if 0 <= u1 <= 1 and 0 <= u2 <= 1:
             Q1 = Ponto(reta.p1.x + deltaX * u1, reta.p1.y + deltaY * u1)
             Q2 = Ponto(reta.p1.x + deltaX * u2, reta.p1.y + deltaY * u2)
             reta.p1 = Q1
             reta.p2 = Q2
+        else:
+            reta.visivel = False
 
 
 class WeilerAtherton():
