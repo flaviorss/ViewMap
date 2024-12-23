@@ -221,7 +221,7 @@ class Visualizador:
                 else:
                     CohenSutherland.clipping_reta(auxSegmento)
                 if auxSegmento.visivel:
-                    auxSegmento.desenhar(self.canvas, self.viewport, self.window, self.angulo_grau, "vp")
+                    auxSegmento.desenhar(self.canvas, self.viewport, self.window, -self.angulo_grau, "vp")
                 else:
                     print("Reta não desenhada")
         pass
