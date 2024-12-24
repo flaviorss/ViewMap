@@ -78,13 +78,13 @@ class Visualizador:
         self.frame_principal.pack(fill="both", expand=True)
 
         # Canvas da Viewport principal
-        self.canvas = tk.Canvas(self.frame_principal, width=800, height=600, bg="white")
+        self.canvas = tk.Canvas(self.frame_principal, width = 810, height = 810, bg="white")
         self.canvas.pack(side="left", fill="both", expand=True)
 
         # Canvas da Minimap principal
-        self.canvas_minimap = tk.Canvas(self.frame_principal, width=160, height=120, bg="lightgrey")
+        self.canvas_minimap = tk.Canvas(self.frame_principal, width=160, height=160, bg="lightgrey")
         self.canvas_minimap.pack(side="right", padx=10, pady=10)
-        self.viewport_minimapa = Recorte(Ponto(0, 0), Ponto(160, 120))
+        self.viewport_minimapa = Recorte(Ponto(0, 0), Ponto(160, 160))
 
         # Frame dos Botões
         self.frame_botoes = tk.Frame(root)
@@ -199,20 +199,20 @@ class Visualizador:
         if hasattr(self, 'canvas'):
             self.canvas.destroy()
 
-        self.canvas = tk.Canvas(self.frame_principal, width=self.viewport.get_largura(),
-                                height=self.viewport.get_altura(), bg="white")
+        self.canvas = tk.Canvas(self.frame_principal, width=self.viewport.get_largura() + 10,
+                                height=self.viewport.get_altura() + 10, bg="white")
         self.canvas.pack(side="left", fill="both", expand=True)
 
         for forma in self.formas:
             if isinstance(forma, Ponto):
-                novo_ponto = transformada(Ponto(forma.x, forma.y), self.window, self.viewport, self.angulo_grau)
+                novo_ponto = transformada(Ponto(forma.x, forma.y), self.window, self.viewport, -self.angulo_grau)
                 novo_ponto = Ponto(float(novo_ponto[0,0]), float(novo_ponto[1,0]))
                 ClippingPonto.ponto_contido_recorte(novo_ponto)
                 if novo_ponto.visivel:
-                    novo_ponto.desenhar(self.canvas, self.viewport, self.window, self.angulo_grau, "vp")
+                    novo_ponto.desenhar(self.canvas, self.viewport, self.window, -self.angulo_grau, "vp")
             elif isinstance(forma, Segmento):
-                novo_p1 = transformada(Ponto(forma.p1.x, forma.p1.y), self.window, self.viewport, self.angulo_grau)
-                novo_p2 = transformada(Ponto(forma.p2.x, forma.p2.y), self.window, self.viewport, self.angulo_grau)
+                novo_p1 = transformada(Ponto(forma.p1.x, forma.p1.y), self.window, self.viewport, -self.angulo_grau)
+                novo_p2 = transformada(Ponto(forma.p2.x, forma.p2.y), self.window, self.viewport, -self.angulo_grau)
                 novo_p1 = Ponto(float(novo_p1[0,0]), float(novo_p1[1,0]))
                 novo_p2 = Ponto(float(novo_p2[0,0]), float(novo_p2[1,0]))
                 auxSegmento = Segmento(novo_p1, novo_p2, forma.cor)
@@ -222,16 +222,23 @@ class Visualizador:
                     CohenSutherland.clipping_reta(auxSegmento)
                 if auxSegmento.visivel:
                     auxSegmento.desenhar(self.canvas, self.viewport, self.window, -self.angulo_grau, "vp")
-                else:
-                    print("Reta não desenhada")
+            elif isinstance(forma, Poligono):
+                novos_pontos = []
+                for ponto in forma.pontos:
+                    aux_p = transformada(ponto, self.window, self.viewport, -self.angulo_grau)
+                    novos_pontos.append(Ponto(float(aux_p[0, 0]), float(aux_p[1, 0])))
+
+                novos_poligonos = WeilerAtherton.clipping_poligono(Poligono(novos_pontos, forma.cor), Recorte(Ponto(-1, -1), Ponto(1, 1)))
+                for poligono in novos_poligonos:
+                    if poligono.visivel:
+                        poligono.desenhar(self.canvas, self.viewport, self.window, -self.angulo_grau, "vp")
         pass
-        print("-----##-----")
 
     def desenhar_minimapa(self):
         if hasattr(self, 'canvas_minimap'):
             self.canvas_minimap.destroy()
 
-        self.canvas_minimap = tk.Canvas(self.frame_principal, width=160, height=120, bg="lightgrey")
+        self.canvas_minimap = tk.Canvas(self.frame_principal, width=160, height=160, bg="lightgrey")
         self.canvas_minimap.pack(side="right", padx=10, pady=10)
 
         for forma in self.formas:

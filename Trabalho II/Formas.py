@@ -10,7 +10,7 @@ class Forma(ABC):
         self.visivel = visibilidade
 
     @abstractmethod
-    def desenhar(self, canvas, viewport, window, angulo): pass
+    def desenhar(self, canvas, viewport, window, angulo, canva): pass
 
 
 class Ponto(Forma):
@@ -32,7 +32,7 @@ class Ponto(Forma):
 
 class Segmento(Forma):
     def __init__(self, ponto1: Ponto, ponto2: Ponto, cor: string = "blue"):
-        super().__init__(True)
+        super().__init__(False)
         self.cor = cor
         self.p1 = ponto1
         self.p2 = ponto2
@@ -49,6 +49,37 @@ class Segmento(Forma):
             aux_p2 = transformada_viewport(Ponto(float(self.p2.x), float(self.p2.y)), viewport)
             canvas.create_line(aux_p1.x, aux_p1.y, aux_p2.x, aux_p2.y, fill=self.cor)
 
+    def vetor_direcao(self):
+        vx = self.p2.x - self.p1.x
+        vy = self.p2.y - self.p1.y
+        return (vx, vy)
+
+    def equacao_parametrica(self):
+        vx, vy = self.vetor_direcao()
+        return lambda t: (self.p1.x + t * vx, self.p1.y + t * vy)
+
+    def deslocamento_em_ponto(self, ponto: Ponto):
+        ponto_0 = (self.p1.x, self.p1.y)
+        ponto_alvo = (ponto.x, ponto.y)
+        deslocamento = (ponto_alvo[0] - ponto_0[0], ponto_alvo[1] - ponto_0[1])
+
+        return deslocamento
+
+    def calcular_distancia(self, deslocamento: tuple):
+        ponto_0 = (self.p1.x, self.p1.y)
+        ponto_final = (ponto_0[0] + deslocamento[0], ponto_0[1] + deslocamento[1])
+        distancia = math.sqrt((ponto_final[0] - ponto_0[0]) ** 2 + (ponto_final[1] - ponto_0[1]) ** 2)
+
+        return distancia
+
+    def comparar_deslocamentos(self, deslocamento1: tuple, deslocamento2: tuple):
+        distancia1 = self.calcular_distancia(deslocamento1)
+        distancia2 = self.calcular_distancia(deslocamento2)
+
+        if distancia1 < distancia2:
+            return True
+        elif distancia2 < distancia1:
+            return False
 
 class Poligono(Forma):
     def __init__(self, pontos: list[Ponto], cor: string = "red"):
@@ -56,15 +87,21 @@ class Poligono(Forma):
         self.cor = cor
         self.pontos = pontos
 
-    def desenhar(self, canvas, viewport, window, angulo):
+    def desenhar(self, canvas, viewport, window, angulo, canva = "mm"):
         coords = []
-        for ponto in self.pontos:
-            novo_ponto = transformada(ponto, window, viewport, angulo)
-            aux_ponto = transformada_viewport(Ponto(float(novo_ponto[0, 0]), float(novo_ponto[1, 0])), viewport)
-            coords.append(aux_ponto.x)
-            coords.append(aux_ponto.y)
-        canvas.create_polygon(coords, fill="", outline=self.cor, width=1)
-
+        if canva == "mm":
+            for ponto in self.pontos:
+                novo_ponto = transformada(ponto, window, viewport, angulo)
+                aux_ponto = transformada_viewport(Ponto(float(novo_ponto[0, 0]), float(novo_ponto[1, 0])), viewport)
+                coords.append(aux_ponto.x)
+                coords.append(aux_ponto.y)
+            canvas.create_polygon(coords, fill="", outline=self.cor, width=1)
+        else:
+            for ponto in self.pontos:
+                aux_ponto = transformada_viewport(ponto, viewport)
+                coords.append(aux_ponto.x)
+                coords.append(aux_ponto.y)
+            canvas.create_polygon(coords, fill="", outline=self.cor, width=1)
 
 class Recorte:
     def __init__(self, ponto_min: Ponto, ponto_max: Ponto):
